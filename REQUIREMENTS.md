@@ -21,3 +21,4 @@ Este documento detalla las dependencias necesarias y el entorno de ejecución pa
   * **Windows:** Herramientas de compilación de Visual Studio (C++ build tools).
   * **macOS:** Xcode Command Line Tools (`xcode-select --install`).
   * **Linux:** Paquete esencial de desarrollo (`build-essential`).
+

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Astral - Astrea Core</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- Tipografía refinada estilo editorial/ejecutivo -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #121315; color: #E4E6EB; }
+        .serif-title { font-family: 'Cormorant Garamond', serif; }
+        /* Forzar saltos de página limpios en el PDF */
+        .page-break { page-break-after: always; }
+    </style>
+</head>
+<body class="p-12 max-w-4xl mx-auto">
+
+    <!-- PÁGINA 1: PORTADA EJECUTIVA MÍSTICA -->
+    <div class="h-[257mm] flex flex-col justify-between border border-[#2A2C30] p-12 bg-[#16181C] page-break">
+        <!-- Encabezado sutil -->
+        <div class="flex justify-between items-center border-b border-[#2A2C30] pb-4 text-xs tracking-widest text-gray-500 uppercase">
+            <span>Astrea Core Engine v0.2.0</span>
+            <span>Documento Confidencial</span>
+        </div>
+
+        <!-- Título Principal Editorial -->
+        <div class="my-auto space-y-6">
+            <div class="text-[#D4AF37] text-xs font-semibold tracking-[0.3em] uppercase">Análisis Geocéntrico</div>
+            <h1 class="serif-title text-6xl font-light tracking-wide text-white">
+                Informe de Posiciones <br><span class="italic text-gray-400">& Configuración Astral</span>
+            </h1>
+            <div class="w-24 h-[1px] bg-[#D4AF37]"></div>
+        </div>
+
+        <!-- Ficha Técnica de Nacimiento (Estilo Cuadro Ejecutivo) -->
+        <div class="grid grid-cols-2 gap-6 border-t border-[#2A2C30] pt-6 text-sm">
+            <div class="space-y-2">
+                <div class="text-xs text-gray-500 uppercase tracking-wider">Consultante</div>
+                <div class="font-medium text-white text-lg">{{ nombre_usuario }}</div>
+                <div class="text-xs text-gray-400">Coordenadas: {{ latitud }}, {{ longitud }}</div>
+            </div>
+            <div class="space-y-2 text-right">
+                <div class="text-xs text-gray-500 uppercase tracking-wider">Registro Temporal</div>
+                <div class="font-medium text-white text-lg">{{ fecha_local }} | {{ hora_local }}</div>
+                <div class="text-xs text-amber-400 font-mono">{{ zona_horaria_detectada }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PÁGINA 2: POSICIONES PLANETARIAS (TABLA ULTRA LIMPIA) -->
+    <div class="h-[257mm] flex flex-col justify-between border border-[#2A2C30] p-12 bg-[#16181C] page-break">
+        <div>
+            <div class="flex items-center gap-3 mb-8">
+                <span class="text-[#D4AF37] text-lg font-serif">I.</span>
+                <h2 class="serif-title text-2xl tracking-wide text-white uppercase font-medium">Distribución Planetaria</h2>
+            </div>
+            
+            <p class="text-xs text-gray-400 mb-6 leading-relaxed max-w-xl">
+                Cálculo de longitudes eclípticas absolutas y su segmentación correspondiente en el Zodíaco Tropical de 360 grados, auditado bajo la efemérides de precisión del JPL de la NASA.
+            </p>
+
+            <!-- Tabla Ejecutiva -->
+            <div class="overflow-hidden border border-[#2A2C30] rounded-sm">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-[#1F2126] border-b border-[#2A2C30] text-gray-400 text-xs tracking-wider uppercase">
+                            <th class="p-4 font-semibold">Cuerpo Celeste</th>
+                            <th class="p-4 font-semibold">Signo Zodiacal</th>
+                            <th class="p-4 font-semibold text-right">Posición Exacta</th>
+                            <th class="p-4 font-semibold text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#2A2C30]">
+                        {% for p in planetas %}
+                        <tr class="hover:bg-[#1C1E23] transition-colors">
+                            <td class="p-4 font-medium text-white">{{ p.planeta }}</td>
+                            <td class="p-4 text-gray-300 font-serif italic">{{ p.signo }}</td>
+                            <td class="p-4 text-right font-mono text-gray-400">{{ p.grados_signo | round(2) }}°</td>
+                            <td class="p-4 text-center">
+                                {% if p.retrogrado %}
+                                <span class="text-xs bg-amber-950/40 text-amber-400 border border-amber-800/50 px-2 py-0.5 rounded-sm font-mono tracking-widest uppercase">Rx</span>
+                                {% else %}
+                                <span class="text-xs text-gray-600 font-mono uppercase">Dir</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center text-[10px] text-gray-600 tracking-widest uppercase border-t border-[#2A2C30] pt-4">
+            Astrea Analytics — Página 2
+        </div>
+    </div>
+
+</body>
+</html>
