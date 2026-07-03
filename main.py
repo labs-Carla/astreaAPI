@@ -5,6 +5,7 @@ Sin endpoints ni lógica de cálculo (paso siguiente).
 """
 
 from datetime import datetime
+from itertools import combinations
 from typing import List
 from zoneinfo import ZoneInfo
 
@@ -129,3 +130,115 @@ def calcular_tiempo_utc_y_juliano(
         "hora_utc_calculada": hora_utc_str,
         "jd_utc": jd_utc,
     }
+
+# ---------------------------------------------------------------------------
+# Motor astrológico (Paso 3)
+# ---------------------------------------------------------------------------
+
+ASPECTOS_CONFIG = [
+    {"nombre": "Conjunción", "angulo": 0, "orbe": 8.0},
+    {"nombre": "Oposición", "angulo": 180, "orbe": 8.0},
+    {"nombre": "Trígono", "angulo": 120, "orbe": 8.0},
+    {"nombre": "Cuadratura", "angulo": 90, "orbe": 8.0},
+    {"nombre": "Sextil", "angulo": 60, "orbe": 6.0},
+]
+
+
+def obtener_signo_y_grados(longitud_ecliptica: float) -> tuple[str, float]:
+    """Segmenta 0°-360° en los 12 signos de 30° y retorna (signo, grados_dentro_del_signo)."""
+    longitud_normalizada = longitud_ecliptica % 360.0
+    indice_signo = int(longitud_normalizada // 30)
+    grados_signo = longitud_normalizada % 30
+    return SIGNOS[indice_signo], grados_signo
+
+
+def calcular_aspectos(planetas_pos: dict) -> List[AspectoAstrologico]:
+    """
+    Recibe {nombre_planeta: longitud_eclíptica} y retorna los aspectos mayores
+    válidos, usando la distancia angular más corta del círculo de 360°.
+    """
+    aspectos_encontrados: List[AspectoAstrologico] = []
+
+    for (planeta1, lon1), (planeta2, lon2) in combinations(planetas_pos.items(), 2):
+        diferencia = abs(lon1 - lon2) % 360.0
+        distancia_angular = min(diferencia, 360.0 - diferencia)
+
+        for config in ASPECTOS_CONFIG:
+            orbe_actual = abs(distancia_angular - config["angulo"])
+            if orbe_actual <= config["orbe"]:
+                aspectos_encontrados.append(
+                    AspectoAstrologico(
+                        planeta1=planeta1,
+                        planeta2=planeta2,
+                        tipo=config["nombre"],
+                        angulo_exacto=float(config["angulo"]),
+                        distancia=distancia_angular,
+                    )
+                )
+                break  # un solo aspecto por par de planetas
+
+    return aspectos_encontrados
+
+
+# ---------------------------------------------------------------------------
+# Endpoint definitivo
+# ---------------------------------------------------------------------------
+
+@app.get("/carta-natal-completa", response_model=RespuestaAstrologica)
+def carta_natal_completa(
+    fecha: str,
+    hora_local: str,
+    latitud: float,
+    longitud: float,
+    sistema_casas: str = "P",
+):
+    tiempo = calcular_tiempo_utc_y_juliano(fecha, hora_local, latitud, longitud)
+    jd_utc = tiempo["jd_utc"]
+
+    # --- Cúspides de casas y ángulos (Asc/MC) ---
+    cusps, ascmc = swe.houses_ex(jd_utc, latitud, longitud, sistema_casas.encode("ascii"))
+
+    nombres_casas = {0: "Ascendente", 9: "Medio Cielo"}
+    casas: List[PosicionCasa] = []
+    for i, longitud_cuspide in enumerate(cusps):
+        signo, grados = obtener_signo_y_grados(longitud_cuspide)
+        casas.append(
+            PosicionCasa(
+                casa=nombres_casas.get(i, f"Casa {i + 1}"),
+                longitud_total=longitud_cuspide % 360.0,
+                signo=signo,
+                grados_signo=grados,
+            )
+        )
+
+    # --- Posiciones planetarias ---
+    planetas_pos: dict = {}
+    planetas_resultado: List[PosicionPlaneta] = []
+    for nombre, codigo_swe in PLANETAS.items():
+        xx, _ = swe.calc_ut(jd_utc, codigo_swe)
+        longitud_total = xx[0]
+        velocidad_longitud = xx[3]
+
+        signo, grados = obtener_signo_y_grados(longitud_total)
+        planetas_pos[nombre] = longitud_total
+
+        planetas_resultado.append(
+            PosicionPlaneta(
+                planeta=nombre,
+                longitud_total=longitud_total,
+                signo=signo,
+                grados_signo=grados,
+                retrogrado=velocidad_longitud < 0,
+            )
+        )
+
+    # --- Aspectos ---
+    aspectos = calcular_aspectos(planetas_pos)
+
+    return RespuestaAstrologica(
+        zona_horaria_detectada=tiempo["zona_horaria_detectada"],
+        hora_utc_calculada=tiempo["hora_utc_calculada"],
+        planetas=planetas_resultado,
+        casas=casas,
+        aspectos=aspectos,
+    )
