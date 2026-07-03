@@ -1,122 +1,244 @@
+"""
+AstroDev Agent - API Astrológica Profesional
+Esqueleto inicial: imports, app, esquemas y constantes.
+Sin endpoints ni lógica de cálculo (paso siguiente).
+"""
+
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Query
+from itertools import combinations
+from typing import List
+from zoneinfo import ZoneInfo
+
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
+from timezonefinder import TimezoneFinder
 import swisseph as swe
 
+# ---------------------------------------------------------------------------
+# Inicialización de la aplicación
+# ---------------------------------------------------------------------------
+
 app = FastAPI(
-    title="API Astrológica Completa", 
-    description="Cálculo de posiciones planetarias, Casas y Ascendente usando Swiss Ephemeris"
+    title="API Astrológica Profesional",
+    description=(
+        "Cálculos astronómicos de alta precisión para aplicaciones "
+        "astrológicas occidentales, basados en Swiss Ephemeris."
+    ),
+    version="0.1.0",
 )
 
-SIGNOS = [
-    "Aries", "Tauro", "Géminis", "Cáncer", 
-    "Leo", "Virgo", "Libra", "Escorpio", 
-    "Sagitario", "Capricornio", "Acuario", "Piscis"
-]
+# ---------------------------------------------------------------------------
+# Esquemas de validación de salida (Pydantic)
+# ---------------------------------------------------------------------------
 
-PLANETAS = {
-    "Sol": swe.SUN, "Luna": swe.MOON, "Mercurio": swe.MERCURY, 
-    "Venus": swe.VENUS, "Marte": swe.MARS, "Júpiter": swe.JUPITER, 
-    "Saturno": swe.SATURN, "Urano": swe.URANUS, "Neptuno": swe.NEPTUNE, 
-    "Plutón": swe.PLUTO
-}
-
-# --- Esquemas de salida de datos (Pydantic) ---
 class PosicionPlaneta(BaseModel):
     planeta: str
-    longitud_total: float
+    longitud_total: float = Field(..., ge=0.0, lt=360.0)
     signo: str
-    grados_signo: float
+    grados_signo: float = Field(..., ge=0.0, lt=30.0)
     retrogrado: bool
 
+
 class PosicionCasa(BaseModel):
-    casa: str  # Ej: "Casa 1", "Ascendente", "Medio Cielo"
-    longitud_total: float
+    casa: str
+    longitud_total: float = Field(..., ge=0.0, lt=360.0)
     signo: str
-    grados_signo: float
+    grados_signo: float = Field(..., ge=0.0, lt=30.0)
+
+
+class AspectoAstrologico(BaseModel):
+    planeta1: str
+    planeta2: str
+    tipo: str
+    angulo_exacto: float
+    distancia: float = Field(..., ge=0.0, le=180.0)
+
 
 class RespuestaAstrologica(BaseModel):
-    planetas: list[PosicionPlaneta]
-    casas: list[PosicionCasa]
+    zona_horaria_detectada: str
+    hora_utc_calculada: str
+    planetas: List[PosicionPlaneta]
+    casas: List[PosicionCasa]
+    aspectos: List[AspectoAstrologico]
 
 
-def obtener_signo_y_grados(longitud_ecliptica: float):
-    """Divide los 360 grados de la eclíptica en los 12 signos."""
-    id_signo = int(longitud_ecliptica // 30)
-    grados_en_signo = longitud_ecliptica % 30
-    return SIGNOS[id_signo], round(grados_en_signo, 4)
+# ---------------------------------------------------------------------------
+# Constantes: Signos zodiacales
+# ---------------------------------------------------------------------------
+
+SIGNOS = [
+    "Aries",
+    "Tauro",
+    "Géminis",
+    "Cáncer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Escorpio",
+    "Sagitario",
+    "Capricornio",
+    "Acuario",
+    "Piscis",
+]
+
+# ---------------------------------------------------------------------------
+# Constantes: Cuerpos celestes soportados (Swiss Ephemeris)
+# ---------------------------------------------------------------------------
+
+PLANETAS = {
+    "Sol": swe.SUN,
+    "Luna": swe.MOON,
+    "Mercurio": swe.MERCURY,
+    "Venus": swe.VENUS,
+    "Marte": swe.MARS,
+    "Júpiter": swe.JUPITER,
+    "Saturno": swe.SATURN,
+    "Urano": swe.URANUS,
+    "Neptuno": swe.NEPTUNE,
+    "Plutón": swe.PLUTO,
+}
+
+# ---------------------------------------------------------------------------
+# Geolocalización temporal y cálculo de tiempo (Paso 2)
+# ---------------------------------------------------------------------------
+
+tf = TimezoneFinder()
 
 
-@app.get("/carta-natal", response_model=RespuestaAstrologica)
-def calcular_carta_natal(
-    fecha: str = Query(..., description="Formato YYYY-MM-DD"),
-    hora_utc: str = Query(..., description="Formato HH:MM en tiempo UTC"),
-    latitud: float = Query(..., description="Latitud decimal (ej: 4.59)", ge=-90.0, le=90.0),
-    longitud: float = Query(..., description="Longitud decimal (ej: -74.07)", ge=-180.0, le=180.0),
-    sistema_casas: str = Query("P", description="P=Placidus, K=Koch, W=Whole Signs (Signos Enteros)")
+def calcular_tiempo_utc_y_juliano(
+    fecha: str, hora_local: str, latitud: float, longitud: float
+) -> dict:
+    """
+    Detecta la zona horaria histórica según coordenadas, convierte la hora
+    local a UTC y calcula el Día Juliano decimal para Swiss Ephemeris.
+    """
+    zona_horaria = tf.timezone_at(lat=latitud, lng=longitud)
+    if zona_horaria is None:
+        raise ValueError("No se pudo determinar la zona horaria para estas coordenadas.")
+
+    dt_naive = datetime.strptime(f"{fecha} {hora_local}", "%Y-%m-%d %H:%M")
+    dt_local = dt_naive.replace(tzinfo=ZoneInfo(zona_horaria))
+    dt_utc = dt_local.astimezone(ZoneInfo("UTC"))
+
+    hora_utc_str = dt_utc.strftime("%Y-%m-%d %H:%M UTC")
+
+    hora_decimal = dt_utc.hour + dt_utc.minute / 60 + dt_utc.second / 3600
+    jd_utc = swe.julday(dt_utc.year, dt_utc.month, dt_utc.day, hora_decimal)
+
+    return {
+        "zona_horaria_detectada": zona_horaria,
+        "hora_utc_calculada": hora_utc_str,
+        "jd_utc": jd_utc,
+    }
+
+# ---------------------------------------------------------------------------
+# Motor astrológico (Paso 3)
+# ---------------------------------------------------------------------------
+
+ASPECTOS_CONFIG = [
+    {"nombre": "Conjunción", "angulo": 0, "orbe": 8.0},
+    {"nombre": "Oposición", "angulo": 180, "orbe": 8.0},
+    {"nombre": "Trígono", "angulo": 120, "orbe": 8.0},
+    {"nombre": "Cuadratura", "angulo": 90, "orbe": 8.0},
+    {"nombre": "Sextil", "angulo": 60, "orbe": 6.0},
+]
+
+
+def obtener_signo_y_grados(longitud_ecliptica: float) -> tuple[str, float]:
+    """Segmenta 0°-360° en los 12 signos de 30° y retorna (signo, grados_dentro_del_signo)."""
+    longitud_normalizada = longitud_ecliptica % 360.0
+    indice_signo = int(longitud_normalizada // 30)
+    grados_signo = longitud_normalizada % 30
+    return SIGNOS[indice_signo], grados_signo
+
+
+def calcular_aspectos(planetas_pos: dict) -> List[AspectoAstrologico]:
+    """
+    Recibe {nombre_planeta: longitud_eclíptica} y retorna los aspectos mayores
+    válidos, usando la distancia angular más corta del círculo de 360°.
+    """
+    aspectos_encontrados: List[AspectoAstrologico] = []
+
+    for (planeta1, lon1), (planeta2, lon2) in combinations(planetas_pos.items(), 2):
+        diferencia = abs(lon1 - lon2) % 360.0
+        distancia_angular = min(diferencia, 360.0 - diferencia)
+
+        for config in ASPECTOS_CONFIG:
+            orbe_actual = abs(distancia_angular - config["angulo"])
+            if orbe_actual <= config["orbe"]:
+                aspectos_encontrados.append(
+                    AspectoAstrologico(
+                        planeta1=planeta1,
+                        planeta2=planeta2,
+                        tipo=config["nombre"],
+                        angulo_exacto=float(config["angulo"]),
+                        distancia=distancia_angular,
+                    )
+                )
+                break  # un solo aspecto por par de planetas
+
+    return aspectos_encontrados
+
+
+# ---------------------------------------------------------------------------
+# Endpoint definitivo
+# ---------------------------------------------------------------------------
+
+@app.get("/carta-natal-completa", response_model=RespuestaAstrologica)
+def carta_natal_completa(
+    fecha: str,
+    hora_local: str,
+    latitud: float,
+    longitud: float,
+    sistema_casas: str = "P",
 ):
-    try:
-        # 1. Parsear tiempo y calcular Día Juliano
-        dt = datetime.strptime(f"{fecha} {hora_utc}", "%Y-%m-%d %H:%M")
-        hora_decimal = dt.hour + dt.minute / 60.0
-        julian_day = swe.julday(dt.year, dt.month, dt.day, hora_decimal)
-        
-        # Validar sistema de casas
-        sistema_casas_bytes = sistema_casas.encode('utf-8')
-        if sistema_casas_bytes not in [b'P', b'K', b'W']:
-            raise HTTPException(status_code=400, detail="Sistema de casas no soportado. Use P, K o W.")
+    tiempo = calcular_tiempo_utc_y_juliano(fecha, hora_local, latitud, longitud)
+    jd_utc = tiempo["jd_utc"]
 
-        # 2. Calcular Casas y Cúspides
-        # swe.houses_ex devuelve: (cusps, ascmc)
-        # cusps: lista de 13 elementos (el índice 0 se ignora, 1 a 12 son las casas)
-        # ascmc: lista con [Ascendente, Medio Cielo, ARMC, Vertex...]
-        cusps, ascmc = swe.houses_ex(julian_day, latitud, longitud, sistema_casas_bytes)
-        
-        lista_casas = []
-        
-        # Guardar explícitamente Ascendente y Medio Cielo primero
-        signo_asc, grados_asc = obtener_signo_y_grados(ascmc[0])
-        lista_casas.append(PosicionCasa(casa="Ascendente", longitud_total=round(ascmc[0], 4), signo=signo_asc, grados_signo=grados_asc))
-        
-        signo_mc, grados_mc = obtener_signo_y_grados(ascmc[1])
-        lista_casas.append(PosicionCasa(casa="Medio Cielo", longitud_total=round(ascmc[1], 4), signo=signo_mc, grados_signo=grados_mc))
+    # --- Cúspides de casas y ángulos (Asc/MC) ---
+    cusps, ascmc = swe.houses_ex(jd_utc, latitud, longitud, sistema_casas.encode("ascii"))
 
-        # Mapear las 12 casas individuales
-        for i in range(1, 13):
-            signo_c, grados_c = obtener_signo_y_grados(cusps[i])
-            lista_casas.append(
-                PosicionCasa(
-                    casa=f"Casa {i}",
-                    longitud_total=round(cusps[i], 4),
-                    signo=signo_c,
-                    grados_signo=grados_c
-                )
+    nombres_casas = {0: "Ascendente", 9: "Medio Cielo"}
+    casas: List[PosicionCasa] = []
+    for i, longitud_cuspide in enumerate(cusps):
+        signo, grados = obtener_signo_y_grados(longitud_cuspide)
+        casas.append(
+            PosicionCasa(
+                casa=nombres_casas.get(i, f"Casa {i + 1}"),
+                longitud_total=longitud_cuspide % 360.0,
+                signo=signo,
+                grados_signo=grados,
             )
+        )
 
-        # 3. Calcular Planetas
-        lista_planetas = []
-        for nombre, codigo_swe in PLANETAS.items():
-            res, _ = swe.calc_ut(julian_day, codigo_swe)
-            
-            longitud_p = res[0]
-            velocidad_p = res[3]  # El índice 3 de la respuesta contiene la velocidad angular
-            
-            signo_p, grados_p = obtener_signo_y_grados(longitud_p)
-            is_retrogrado = velocidad_p < 0
+    # --- Posiciones planetarias ---
+    planetas_pos: dict = {}
+    planetas_resultado: List[PosicionPlaneta] = []
+    for nombre, codigo_swe in PLANETAS.items():
+        xx, _ = swe.calc_ut(jd_utc, codigo_swe)
+        longitud_total = xx[0]
+        velocidad_longitud = xx[3]
 
-            lista_planetas.append(
-                PosicionPlaneta(
-                    planeta=nombre,
-                    longitud_total=round(longitud_p, 4),
-                    signo=signo_p,
-                    grados_signo=grados_p,
-                    retrogrado=is_retrogrado
-                )
+        signo, grados = obtener_signo_y_grados(longitud_total)
+        planetas_pos[nombre] = longitud_total
+
+        planetas_resultado.append(
+            PosicionPlaneta(
+                planeta=nombre,
+                longitud_total=longitud_total,
+                signo=signo,
+                grados_signo=grados,
+                retrogrado=velocidad_longitud < 0,
             )
-            
-        return RespuestaAstrologica(planetas=lista_planetas, casas=lista_casas)
+        )
 
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Formato de fecha u hora inválido. Use YYYY-MM-DD y HH:MM.")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en el cálculo astronómico: {str(e)}")
+    # --- Aspectos ---
+    aspectos = calcular_aspectos(planetas_pos)
+
+    return RespuestaAstrologica(
+        zona_horaria_detectada=tiempo["zona_horaria_detectada"],
+        hora_utc_calculada=tiempo["hora_utc_calculada"],
+        planetas=planetas_resultado,
+        casas=casas,
+        aspectos=aspectos,
+    )
