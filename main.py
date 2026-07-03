@@ -9,9 +9,10 @@ from itertools import combinations
 from typing import List
 from zoneinfo import ZoneInfo
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from timezonefinder import TimezoneFinder
+
 import swisseph as swe
 
 # ---------------------------------------------------------------------------
@@ -192,25 +193,52 @@ def carta_natal_completa(
     longitud: float,
     sistema_casas: str = "P",
 ):
-    tiempo = calcular_tiempo_utc_y_juliano(fecha, hora_local, latitud, longitud)
+    # BLINDAJE DE VALIDACIÓN DE FORMATOS DE TIEMPO
+    try:
+        tiempo = calcular_tiempo_utc_y_juliano(fecha, hora_local, latitud, longitud)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Datos de entrada inválidos. Verifique el formato de fecha (YYYY-MM-DD), hora (HH:MM) o coordenadas reales. Detalle: {e}"
+        )
+        
     jd_utc = tiempo["jd_utc"]
-
     # --- Cúspides de casas y ángulos (Asc/MC) ---
-    cusps, ascmc = swe.houses_ex(jd_utc, latitud, longitud, sistema_casas.encode("ascii"))
-
-    nombres_casas = {0: "Ascendente", 9: "Medio Cielo"}
-    casas: List[PosicionCasa] = []
-    for i, longitud_cuspide in enumerate(cusps):
-        signo, grados = obtener_signo_y_grados(longitud_cuspide)
-        casas.append(
-            PosicionCasa(
-                casa=nombres_casas.get(i, f"Casa {i + 1}"),
-                longitud_total=longitud_cuspide % 360.0,
-                signo=signo,
-                grados_signo=grados,
-            )
+    try:
+        cusps, ascmc = swe.houses_ex(
+            jd_utc, latitud, longitud, sistema_casas.encode("ascii")
+        )
+    except swe.Error as e:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "No se pudo calcular el sistema de casas solicitado "
+                f"('{sistema_casas}') para estas coordenadas. Esto es común en "
+                "latitudes polares (>66°) con sistemas como Placidus, donde "
+                "algunas cúspides no convergen matemáticamente. "
+                "Prueba con el sistema 'W' (Whole Signs). "
+                f"Detalle técnico: {e}"
+            ),
         )
 
+    # --- Construir la lista de objetos PosicionCasa ---
+    casas_resultado: List[PosicionCasa] = []
+
+    signo_asc, grados_asc = obtener_signo_y_grados(ascmc[0])
+    casas_resultado.append(
+        PosicionCasa(casa="Ascendente", longitud_total=ascmc[0] % 360.0, signo=signo_asc, grados_signo=grados_asc)
+    )
+
+    signo_mc, grados_mc = obtener_signo_y_grados(ascmc[1])
+    casas_resultado.append(
+        PosicionCasa(casa="Medio Cielo", longitud_total=ascmc[1] % 360.0, signo=signo_mc, grados_signo=grados_mc)
+    )
+
+    for i, longitud_cuspide in enumerate(cusps):
+        signo_c, grados_c = obtener_signo_y_grados(longitud_cuspide)
+        casas_resultado.append(
+            PosicionCasa(casa=f"Casa {i + 1}", longitud_total=longitud_cuspide % 360.0, signo=signo_c, grados_signo=grados_c)
+        )
     # --- Posiciones planetarias ---
     planetas_pos: dict = {}
     planetas_resultado: List[PosicionPlaneta] = []
@@ -239,6 +267,6 @@ def carta_natal_completa(
         zona_horaria_detectada=tiempo["zona_horaria_detectada"],
         hora_utc_calculada=tiempo["hora_utc_calculada"],
         planetas=planetas_resultado,
-        casas=casas,
+        casas=casas_resultado,
         aspectos=aspectos,
     )
