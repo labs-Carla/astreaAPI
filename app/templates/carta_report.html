@@ -3,87 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <title>Reporte Astral - Astrea Core</title>
-    <!-- Carga de Tailwind CSS -->
-    <script src="https://jsdelivr.net"></script>
-    <!-- Tipografía refinada estilo editorial/ejecutivo -->
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #121315; color: #E4E6EB; }
-        .serif-title { font-family: 'Cormorant Garamond', serif; }
-        /* Forzar saltos de página limpios en el PDF */
-        .page-break { page-break-after: always; }
+        /* Estilos Base en CSS Puro Embebido (Costo de red: $0, 100% Offline) */
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #121315; 
+            color: #E4E6EB; 
+            margin: 0; 
+            padding: 40px;
+        }
+        .page-container {
+            max-width: 800px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        .card-page {
+            height: 270mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid #2A2C30;
+            padding: 50px;
+            background-color: #16181C;
+            page-break-after: always;
+            margin-bottom: 40px;
+        }
+        .header-meta {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #2A2C30;
+            padding-bottom: 15px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #6B7280;
+        }
+        .title-block {
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+        .gold-tag {
+            color: #D4AF37;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 45px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #FFFFFF;
+            line-height: 1.2;
+            margin: 0;
+        }
+        .italic-text {
+            color: #9CA3AF;
+            font-style: italic;
+        }
+        .divider {
+            width: 100px;
+            height: 1px;
+            background-color: #D4AF37;
+            margin-top: 25px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid #2A2C30;
+            padding-top: 25px;
+            font-size: 14px;
+        }
+        .footer-meta-right {
+            text-align: right;
+        }
+        .gold-text-mono {
+            color: #F59E0B;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            letter-spacing: 1px;
+            color: #FFFFFF;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+        }
+        .num-gold {
+            color: #D4AF37;
+            margin-right: 10px;
+            font-family: serif;
+        }
+        p.desc {
+            font-size: 13px;
+            color: #9CA3AF;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #2A2C30;
+            font-size: 14px;
+        }
+        th {
+            background-color: #1F2126;
+            border-bottom: 1px solid #2A2C30;
+            color: #9CA3AF;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #2A2C30;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .rx-tag {
+            background-color: rgba(120, 53, 4, 0.4);
+            color: #F59E0B;
+            border: 1px solid rgba(146, 64, 14, 0.5);
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .quote-box {
+            font-style: italic;
+            color: #FFFFFF;
+            border-left: 2px solid #D4AF37;
+            padding: 10px 15px;
+            background-color: rgba(31, 33, 38, 0.3);
+            line-height: 1.6;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .block-chapter {
+            margin-bottom: 20px;
+        }
+        .block-chapter h3 {
+            color: #D4AF37;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .block-chapter p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #D1D5DB;
+            margin: 0;
+        }
     </style>
 </head>
-<body class="p-12 max-w-4xl mx-auto">
+<body>
+    <div class="page-container">
 
-    <!-- PÁGINA 1: PORTADA EJECUTIVA MÍSTICA -->
-    <div class="h-[257mm] flex flex-col justify-between border border-[#2A2C30] p-12 bg-[#16181C] page-break">
-        <!-- Encabezado sutil -->
-        <div class="flex justify-between items-center border-b border-[#2A2C30] pb-4 text-xs tracking-widest text-gray-500 uppercase">
-            <span>Astrea Core Engine v0.2.0</span>
-            <span>Documento Confidencial</span>
-        </div>
-
-        <!-- Título Principal Editorial -->
-        <div class="my-auto space-y-6">
-            <div class="text-[#D4AF37] text-xs font-semibold tracking-[0.3em] uppercase">Análisis Geocéntrico</div>
-            <h1 class="serif-title text-6xl font-light tracking-wide text-white">
-                Informe de Posiciones <br><span class="italic text-gray-400">& Configuración Astral</span>
-            </h1>
-            <div class="w-24 h-[1px] bg-[#D4AF37]"></div>
-        </div>
-
-        <!-- Ficha Técnica de Nacimiento (Estilo Cuadro Ejecutivo) -->
-        <div class="grid grid-cols-2 gap-6 border-t border-[#2A2C30] pt-6 text-sm">
-            <div class="space-y-2">
-                <div class="text-xs text-gray-500 uppercase tracking-wider">Consultante</div>
-                <div class="font-medium text-white text-lg">{{ nombre_usuario }}</div>
-                <div class="text-xs text-gray-400">Coordenadas: {{ latitud }}, {{ longitud }}</div>
+        <!-- PÁGINA 1: PORTADA -->
+        <div class="card-page">
+            <div class="header-meta">
+                <span>Astrea Core Engine v0.3.5</span>
+                <span>Documento Confidencial</span>
             </div>
-            <div class="space-y-2 text-right">
-                <div class="text-xs text-gray-500 uppercase tracking-wider">Registro Temporal</div>
-                <div class="font-medium text-white text-lg">{{ fecha_local }} | {{ hora_local }}</div>
-                <div class="text-xs text-amber-400 font-mono">{{ zona_horaria_detectada }}</div>
+
+            <div class="title-block">
+                <div class="gold-tag">Análisis Geocéntrico</div>
+                <h1>Informe de Posiciones <br><span class="italic-text">& Configuración Astral</span></h1>
+                <div class="divider"></div>
+            </div>
+
+            <div class="footer-grid">
+                <div>
+                    <div style="color: #6B7280; font-size: 11px; text-transform: uppercase;">Consultante</div>
+                    <div style="font-size: 18px; color: #FFF; margin: 4px 0;">{{ nombre_usuario }}</div>
+                    <div style="font-size: 12px; color: #9CA3AF;">Coordenadas: {{ latitud }}, {{ longitud }}</div>
+                </div>
+                <div class="footer-meta-right">
+                    <div style="color: #6B7280; font-size: 11px; text-transform: uppercase;">Registro Temporal</div>
+                    <div style="font-size: 18px; color: #FFF; margin: 4px 0;">{{ fecha_local }} | {{ hora_local }}</div>
+                    <div class="gold-text-mono">{{ zona_horaria_detectada }}</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- PÁGINA 2: POSICIONES PLANETARIAS (TABLA ULTRA LIMPIA) -->
-    <div class="h-[257mm] flex flex-col justify-between border border-[#2A2C30] p-12 bg-[#16181C] page-break">
-        <div>
-            <div class="flex items-center gap-3 mb-8">
-                <span class="text-[#D4AF37] text-lg font-serif">I.</span>
-                <h2 class="serif-title text-2xl tracking-wide text-white uppercase font-medium">Distribución Planetaria</h2>
-            </div>
-            
-            <p class="text-xs text-gray-400 mb-6 leading-relaxed max-w-xl">
-                Cálculo de longitudes eclípticas absolutas y su segmentación correspondiente en el Zodíaco Tropical de 360 grados, auditado bajo la efemérides de precisión del JPL de la NASA.
-            </p>
+        <!-- PÁGINA 2: DISTRIBUCIÓN MATEMÁTICA -->
+        <div class="card-page">
+            <div>
+                <div class="section-title">
+                    <span class="num-gold">I.</span> Distribución Planetaria
+                </div>
+                <p class="desc">
+                    Cálculo de longitudes eclípticas absolutas y su segmentación correspondiente en el Zodíaco Tropical de 360 grados, auditado bajo la efemérides de precisión del JPL de la NASA.
+                </p>
 
-            <!-- Tabla Ejecutiva -->
-            <div class="overflow-hidden border border-[#2A2C30] rounded-sm">
-                <table class="w-full text-left border-collapse text-sm">
+                <table>
                     <thead>
-                        <tr class="bg-[#1F2126] border-b border-[#2A2C30] text-gray-400 text-xs tracking-wider uppercase">
-                            <th class="p-4 font-semibold">Cuerpo Celeste</th>
-                            <th class="p-4 font-semibold">Signo Zodiacal</th>
-                            <th class="p-4 font-semibold text-right">Posición Exacta</th>
-                            <th class="p-4 font-semibold text-center">Estado</th>
+                        <tr>
+                            <th>Cuerpo Celeste</th>
+                            <th>Signo Zodiacal</th>
+                            <th class="text-right">Posición Exacta</th>
+                            <th class="text-center">Estado</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#2A2C30]">
+                    <tbody>
                         {% for p in planetas %}
-                        <tr class="hover:bg-[#1C1E23] transition-colors">
-                            <td class="p-4 font-medium text-white">{{ p.planeta }}</td>
-                            <td class="p-4 text-gray-300 font-serif italic">{{ p.signo }}</td>
-                            <td class="p-4 text-right font-mono text-gray-400">{{ p.grados_signo | round(2) }}°</td>
-                            <td class="p-4 text-center">
+                        <tr>
+                            <td style="color: #FFF; font-weight: 500;">{{ p.planeta }}</td>
+                            <td style="color: #D1D5DB; font-style: italic;">{{ p.signo }}</td>
+                            <td class="text-right" style="font-family: monospace; color: #9CA3AF;">{{ p.grados_signo | round(2) }}°</td>
+                            <td class="text-center">
                                 {% if p.retrogrado %}
-                                <span class="text-xs bg-amber-950/40 text-amber-400 border border-amber-800/50 px-2 py-0.5 rounded-sm font-mono tracking-widest uppercase">Rx</span>
+                                <span class="rx-tag">Rx</span>
                                 {% else %}
-                                <span class="text-xs text-gray-600 font-mono uppercase">Dir</span>
+                                <span style="color: #4B5563; font-family: monospace; font-size: 11px; text-transform: uppercase;">Dir</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -91,12 +228,81 @@
                     </tbody>
                 </table>
             </div>
+            <div class="text-center" style="font-size: 10px; color: #4B5563; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid #2A2C30; padding-top: 10px;">
+                Astrea Analytics — Página 2
+            </div>
         </div>
 
-        <div class="text-center text-[10px] text-gray-600 tracking-widest uppercase border-t border-[#2A2C30] pt-4">
-            Astrea Analytics — Página 2
+        <!-- PÁGINA 3: CAPÍTULO I -->
+        <div class="card-page" style="height: auto; min-height: 270mm;">
+            <div>
+                <div class="section-title">
+                    <span class="num-gold">II.</span> Vector de Liderazgo e Identidad
+                </div>
+                
+                <div class="quote-box">
+                    {{ interpretacion_premium.introduccion_sintesis }}
+                </div>
+                
+                <div class="block-chapter">
+                    <h3>El Propósito Consciente (Sol)</h3>
+                    <p>{{ interpretacion_premium.capitulo_1_identidad.sol }}</p>
+                </div>
+                
+                <div class="block-chapter" style="margin-top: 20px;">
+                    <h3>La Matriz Emocional (Luna)</h3>
+                    <p>{{ interpretacion_premium.capitulo_1_identidad.luna }}</p>
+                </div>
+
+                <div class="block-chapter" style="margin-top: 20px;">
+                    <h3>El Lente Operativo (Ascendente)</h3>
+                    <p>{{ interpretacion_premium.capitulo_1_identidad.ascendente }}</p>
+                </div>
+            </div>
+            <div class="text-center" style="font-size: 10px; color: #4B5563; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid #2A2C30; padding-top: 10px; margin-top: 30px;">
+                Astrea Analytics — Página 3
+            </div>
         </div>
+
+        <!-- PÁGINA 4: CAPÍTULO II & III -->
+        <div class="card-page" style="height: auto; min-height: 270mm; page-break-after: avoid;">
+            <div>
+                <div class="section-title">
+                    <span class="num-gold">III.</span> Matriz Operativa y Dinámica Geométrica
+                </div>
+
+                <div class="block-chapter">
+                    <h3>Estrategia Mental y Comunicación (Mercurio)</h3>
+                    <p>{{ interpretacion_premium.capitulo_2_operacion.mercurio }}</p>
+                </div>
+
+                <div class="block-chapter" style="margin-top: 20px;">
+                    <h3>Código de Alianzas y Alquimia (Venus)</h3>
+                    <p>{{ interpretacion_premium.capitulo_2_operacion.venus }}</p>
+                </div>
+
+                <div class="block-chapter" style="margin-top: 20px;">
+                    <h3>Vector de Ejecución y Empuje (Marte)</h3>
+                    <p>{{ interpretacion_premium.capitulo_2_operacion.marte }}</p>
+                </div>
+
+                <div class="section-title" style="margin-top: 40px;">
+                    <span class="num-gold">IV.</span> Puntos de Apalancamiento y Dinámica Geométrica
+                </div>
+
+                <div class="block-chapter">
+                    <p>{{ interpretacion_premium.capitulo_3_apalancamiento.analisis_aspectos }}</p>
+                </div>
+
+                <div class="quote-box" style="margin-top: 30px;">
+                    "{{ interpretacion_premium.cita_cierre }}"
+                </div>
+            </div>
+            <div class="text-center" style="font-size: 10px; color: #4B5563; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid #2A2C30; padding-top: 10px; margin-top: 30px;">
+                Astrea Analytics — Página 4
+            </div>
+        </div>
+
     </div>
-
 </body>
 </html>
