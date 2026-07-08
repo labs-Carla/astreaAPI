@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 import swisseph as swe
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from timezonefinder import TimezoneFinder
 from zoneinfo import ZoneInfo
@@ -22,22 +23,27 @@ from app.core.config import PLANETAS
 
 router = APIRouter()
 
+
 def _generar_hash_unico(fecha: str, hora_local: str, latitud: float, longitud: float, sistema_casas: str) -> str:
     """Combina los parámetros de la consulta en un hash SHA-256 determinístico."""
     base = f"{fecha}|{hora_local}|{latitud:.4f}|{longitud:.4f}|{sistema_casas}"
     return hashlib.sha256(base.encode("utf-8")).hexdigest()
 
 
-@router.get("/carta-natal-completa", response_model=RespuestaAstrologica)
-async def obtener_carta_natal(
+async def _calcular_o_recuperar_carta(
     fecha: str,
     hora_local: str,
     latitud: float,
     longitud: float,
-    sistema_casas: str = "P",
-    nombre: str = "Consultante",
-    db: Session = Depends(get_db),
-):
+    sistema_casas: str,
+    nombre: str,
+    db: Session,
+) -> dict:
+    """
+    Lógica compartida: verifica caché, calcula si hace falta, persiste, y
+    siempre retorna un dict con latitud/longitud incluidos explícitamente
+    (necesarios para el PDF, no solo para el JSON de la API).
+    """
     # 1. Hash único para caché
     hash_unico = _generar_hash_unico(fecha, hora_local, latitud, longitud, sistema_casas)
 
@@ -47,6 +53,8 @@ async def obtener_carta_natal(
         datos = json.loads(reporte_existente.datos_matematicos)
         if reporte_existente.interpretacion_texto:
             datos["interpretacion_premium"] = json.loads(reporte_existente.interpretacion_texto)
+        datos["latitud"] = latitud
+        datos["longitud"] = longitud
         return datos
 
     # 3. Cálculo astronómico
@@ -83,7 +91,7 @@ async def obtener_carta_natal(
             "retrogrado": velocidad_longitud < 0
         })
 
-        # Cálculo de aspectos e intercalación de casas (RESETEO DE LOGICA SEGURO)
+    # Cálculo de aspectos e intercalación de casas
     aspectos = [a.model_dump() if hasattr(a, 'model_dump') else a for a in calcular_aspectos(planetas_pos)]
     casas_resultado = []
 
@@ -95,7 +103,6 @@ async def obtener_carta_natal(
     casas_resultado.append({"casa": "Medio Cielo", "longitud_total": round(ascmc[1], 4), "signo": signo_mc, "grados_signo": round(grados_mc, 4)})
 
     # Mapeo defensivo de las 12 Casas
-    # Si la lista de cúspides contiene 13 elementos (el índice 0 es basura), empezamos en 1
     if len(cusps) == 13:
         for i in range(1, 13):
             signo_c, grados_c = obtener_signo_y_grados(cusps[i])
@@ -106,7 +113,6 @@ async def obtener_carta_natal(
                 "grados_signo": round(grados_c, 4)
             })
     else:
-        # Si contiene 12 elementos exactos, indexamos desde 0 de forma estándar
         for i in range(12):
             signo_c, grados_c = obtener_signo_y_grados(cusps[i])
             casas_resultado.append({
@@ -116,7 +122,6 @@ async def obtener_carta_natal(
                 "grados_signo": round(grados_c, 4)
             })
 
-
     resultado = {
         "zona_horaria_detectada": tiempo["zona_horaria_detectada"],
         "hora_utc_calculada": tiempo["hora_utc_calculada"],
@@ -125,14 +130,14 @@ async def obtener_carta_natal(
         "aspectos": aspectos,
     }
 
-    # 4. INVOCACIÓN MODULAR A LA API DE CLAUDE
+    # 4. Invocación modular a la API de Claude
     from app.services.ai_service import generar_interpretacion_premium
     try:
         interpretacion_json = await generar_interpretacion_premium(resultado, nombre)
     except Exception as e:
         interpretacion_json = {"error": f"No se pudo generar la interpretación de IA: {e}"}
 
-    # 5. Persistencia (única, después del await)
+    # 5. Persistencia
     nuevo_consultante = Consultante(
         nombre=nombre,
         fecha_nacimiento=fecha,
@@ -153,4 +158,65 @@ async def obtener_carta_natal(
     db.add(nuevo_reporte)
     db.commit()
 
-    return {**resultado, "interpretacion_premium": interpretacion_json}
+    return {**resultado, "interpretacion_premium": interpretacion_json, "latitud": latitud, "longitud": longitud}
+
+
+@router.get("/carta-natal-completa", response_model=RespuestaAstrologica)
+async def obtener_carta_natal(
+    fecha: str,
+    hora_local: str,
+    latitud: float,
+    longitud: float,
+    sistema_casas: str = "P",
+    nombre: str = "Consultante",
+    db: Session = Depends(get_db),
+):
+    return await _calcular_o_recuperar_carta(
+        fecha, hora_local, latitud, longitud, sistema_casas, nombre, db
+    )
+
+
+@router.get("/carta-natal/pdf")
+async def descargar_reporte_pdf(
+    fecha: str,
+    hora_local: str,
+    latitud: float,
+    longitud: float,
+    sistema_casas: str = "P",
+    nombre: str = "Consultante",
+    db: Session = Depends(get_db),
+):
+    """
+    Endpoint que genera y retorna el documento PDF definitivo con diseño premium
+    para su descarga directa en el navegador.
+    """
+    try:
+        resultado_completo = await _calcular_o_recuperar_carta(
+            fecha, hora_local, latitud, longitud, sistema_casas, nombre, db
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error al procesar el mapa base: {e}")
+
+    from app.services.report_service import generar_pdf_reporte
+    try:
+        pdf_bytes = await generar_pdf_reporte(
+            datos_astrales=resultado_completo,
+            nombre_usuario=nombre,
+            fecha_local=fecha,
+            hora_local=hora_local
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error en el motor de impresión PDF (Playwright): {e}"
+        )
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Reporte_Astral_{nombre.replace(' ', '_')}.pdf"
+        }
+    )
