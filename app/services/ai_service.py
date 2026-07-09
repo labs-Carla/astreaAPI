@@ -4,7 +4,11 @@ Utiliza el SDK asíncrono de Anthropic para generar narrativas ejecutivas y psic
 """
 
 import json
+
 from anthropic import AsyncAnthropic
+from pydantic import ValidationError
+
+from app.models.astro import InterpretacionPremiumSchema
 
 client = AsyncAnthropic()
 
@@ -14,7 +18,7 @@ Eres el motor de interpretación del sistema Astrea Core Engine.
 Tu identidad es la de un Consultor de Estrategia Personal, Psicólogo Evolutivo y Astrólogo de Alta Gama. Operas exclusivamente para perfiles que exigen precisión, profundidad y sofisticación intelectual.
 
 TONO Y VOZ:
-- Habla en segunda persona directa ("Tú tienes", "Tu estructura reveals").
+- Habla en segunda persona directa ("Tú tienes", "Tu estructura revela").
 - Tono: ejecutivo, refinado, conciso y sutilmente místico.
 - Prohibido: lenguaje predictivo ("tendrás", "te pasará"), adivinatorio, comercial o esoterismo denso.
 - Cada oración debe revelar, no decorar.
@@ -86,6 +90,12 @@ def _formatear_contexto(datos_matematicos: dict, nombre_usuario: str) -> str:
 async def generar_interpretacion_premium(datos_matematicos: dict, nombre_usuario: str) -> dict:
     """
     Genera la interpretación astrológica premium usando Claude.
+
+    Internamente valida el JSON contra `InterpretacionPremiumSchema`
+    (app/models/astro.py) en lugar de tratarlo como texto plano. El retorno
+    sigue siendo un `dict` (vía `.model_dump()`) para no alterar el contrato
+    con `endpoints.py` / `report_service.py`. Si el JSON no calza con el
+    esquema, se retorna un dict de contingencia.
     """
     contexto = _formatear_contexto(datos_matematicos, nombre_usuario)
 
@@ -113,4 +123,11 @@ async def generar_interpretacion_premium(datos_matematicos: dict, nombre_usuario
         if texto_crudo.startswith("json"):
             texto_crudo = texto_crudo[4:]
 
-    return json.loads(texto_crudo)
+    datos_json = json.loads(texto_crudo)
+
+    try:
+        lectura = InterpretacionPremiumSchema.model_validate(datos_json)
+        return lectura.model_dump()
+    except ValidationError as e:
+        # Contingencia: se preserva el dict crudo para no romper persistencia/PDF.
+        return {**datos_json, "_validation_error": str(e)}

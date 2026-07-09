@@ -2,113 +2,221 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte Astral - Astrea Core</title>
+    <title>Tu Lectura Astral — {{ nombre_usuario }}</title>
     <style>
-        /* Estilos Base en CSS Puro Embebido (Costo de red: $0, 100% Offline) */
-        body { 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            background-color: #121315; 
-            color: #E4E6EB; 
-            margin: 0; 
+        /* ============================================================
+           SISTEMA VISUAL — Lectura Astrológica Premium
+           Paleta: fondo profundo, dorado como acento único, tipografía
+           serif para voz humana + sans para datos/estructura.
+           ============================================================ */
+
+        body {
+            font-family: 'Georgia', 'Helvetica Neue', serif;
+            background-color: #121315;
+            color: #E4E6EB;
+            margin: 0;
             padding: 40px;
         }
+
         .page-container {
             max-width: 800px;
             margin: 0 auto;
             box-sizing: border-box;
         }
+
         .card-page {
-            height: 270mm;
+            min-height: 270mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             border: 1px solid #2A2C30;
-            padding: 50px;
+            padding: 60px 55px;
             background-color: #16181C;
             page-break-after: always;
             margin-bottom: 40px;
         }
-        .header-meta {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #2A2C30;
-            padding-bottom: 15px;
-            font-size: 11px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #6B7280;
+
+        .card-page:last-child {
+            page-break-after: avoid;
         }
-        .title-block {
-            margin-top: auto;
-            margin-bottom: auto;
+
+        /* ---------- Tipografía general ---------- */
+        h1, h2, h3 {
+            font-family: 'Georgia', serif;
+            font-weight: 400;
         }
+
+        p, td, th, li {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
         .gold-tag {
             color: #D4AF37;
-            font-size: 12px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 11px;
             font-weight: 600;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
-        h1 {
-            font-size: 45px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            color: #FFFFFF;
-            line-height: 1.2;
-            margin: 0;
+
+        .divider {
+            width: 90px;
+            height: 1px;
+            background-color: #D4AF37;
+            margin-top: 28px;
         }
+
+        .divider-center {
+            width: 60px;
+            height: 1px;
+            background-color: #D4AF37;
+            margin: 30px auto;
+        }
+
         .italic-text {
             color: #9CA3AF;
             font-style: italic;
         }
-        .divider {
-            width: 100px;
-            height: 1px;
-            background-color: #D4AF37;
-            margin-top: 25px;
+
+        /* ---------- PÁGINA 1: PORTADA PERSONAL ---------- */
+        .cover-page {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border-top: 1px solid #2A2C30;
-            padding-top: 25px;
-            font-size: 14px;
+
+        .cover-eyebrow {
+            color: #D4AF37;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 12px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
         }
-        .footer-meta-right {
-            text-align: right;
+
+        .cover-name {
+            font-size: 52px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: #FFFFFF;
+            line-height: 1.25;
+            margin: 0 0 10px 0;
         }
-        .gold-text-mono {
-            color: #F59E0B;
+
+        .cover-subtitle {
+            font-size: 17px;
+            color: #9CA3AF;
+            font-style: italic;
+            margin-top: 18px;
+        }
+
+        .cover-meta {
+            margin-top: 60px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 13px;
+            color: #6B7280;
+            letter-spacing: 1px;
+        }
+
+        .cover-meta span.gold-text-mono {
+            color: #D4AF37;
             font-family: monospace;
             font-size: 12px;
         }
+
+        /* ---------- Secciones internas ---------- */
         .section-title {
-            display: flex;
-            align-items: center;
-            font-size: 22px;
-            letter-spacing: 1px;
+            font-size: 30px;
+            letter-spacing: 0.5px;
             color: #FFFFFF;
+            margin-bottom: 8px;
+        }
+
+        .section-kicker {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 11px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            margin-bottom: 25px;
-        }
-        .num-gold {
             color: #D4AF37;
-            margin-right: 10px;
-            font-family: serif;
+            margin-bottom: 14px;
         }
+
         p.desc {
-            font-size: 13px;
+            font-size: 14px;
             color: #9CA3AF;
-            line-height: 1.6;
-            margin-bottom: 30px;
+            line-height: 1.75;
+            margin-bottom: 36px;
+            max-width: 620px;
         }
+
+        /* ---------- Página de bienvenida ---------- */
+        .welcome-block {
+            margin-bottom: 34px;
+        }
+
+        .welcome-block h3 {
+            color: #D4AF37;
+            font-size: 15px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+        }
+
+        .welcome-block p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #D1D5DB;
+            margin: 0;
+        }
+
+        /* ---------- Resumen visual (Carta de un Vistazo) ---------- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .summary-card {
+            border: 1px solid #2A2C30;
+            background-color: #1A1C20;
+            padding: 22px 18px;
+            text-align: center;
+        }
+
+        .summary-card .summary-label {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 12px;
+        }
+
+        .summary-card .summary-value {
+            font-family: 'Georgia', serif;
+            font-size: 20px;
+            color: #D4AF37;
+            font-style: italic;
+        }
+
+        .summary-card .summary-placeholder {
+            font-family: monospace;
+            font-size: 11px;
+            color: #4B5563;
+            text-transform: uppercase;
+        }
+
+        /* ---------- Tabla planetaria ---------- */
         table {
             width: 100%;
             border-collapse: collapse;
             border: 1px solid #2A2C30;
             font-size: 14px;
         }
+
         th {
             background-color: #1F2126;
             border-bottom: 1px solid #2A2C30;
@@ -116,14 +224,18 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            padding: 12px;
+            padding: 14px 12px;
+            text-align: left;
         }
+
         td {
-            padding: 12px;
+            padding: 14px 12px;
             border-bottom: 1px solid #2A2C30;
         }
+
         .text-right { text-align: right; }
         .text-center { text-align: center; }
+
         .rx-tag {
             background-color: rgba(120, 53, 4, 0.4);
             color: #F59E0B;
@@ -133,80 +245,227 @@
             font-size: 11px;
             text-transform: uppercase;
         }
+
+        /* ---------- Citas destacadas ---------- */
         .quote-box {
+            font-family: 'Georgia', serif;
             font-style: italic;
             color: #FFFFFF;
+            font-size: 19px;
+            line-height: 1.7;
             border-left: 2px solid #D4AF37;
-            padding: 10px 15px;
-            background-color: rgba(31, 33, 38, 0.3);
-            line-height: 1.6;
-            font-size: 14px;
-            margin-bottom: 25px;
+            padding: 8px 28px;
+            margin: 34px 0;
         }
+
+        .quote-box.small {
+            font-size: 15px;
+            padding: 6px 22px;
+        }
+
+        /* ---------- Bloques de capítulo (lectura personal) ---------- */
         .block-chapter {
-            margin-bottom: 20px;
+            margin-bottom: 44px;
         }
+
         .block-chapter h3 {
-            color: #D4AF37;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
+            font-family: 'Georgia', serif;
+            color: #FFFFFF;
+            font-size: 22px;
+            font-weight: 400;
+            margin-bottom: 4px;
         }
+
+        .block-chapter .chapter-eyebrow {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 6px;
+        }
+
+        .block-chapter .chapter-divider {
+            width: 40px;
+            height: 1px;
+            background-color: #D4AF37;
+            margin: 14px 0 20px 0;
+        }
+
         .block-chapter p {
-            font-size: 13px;
-            line-height: 1.6;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14.5px;
+            line-height: 1.85;
             color: #D1D5DB;
             margin: 0;
+        }
+
+        /* ---------- Placeholders TODO (futuros tránsitos) ---------- */
+        .todo-block {
+            border: 1px dashed #3A3D42;
+            background-color: rgba(212, 175, 55, 0.04);
+            padding: 26px;
+            margin-bottom: 24px;
+        }
+
+        .todo-block .todo-label {
+            font-family: monospace;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: #6B7280;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .todo-block p {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 13px;
+            color: #6B7280;
+            font-style: italic;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* ---------- Footer de página ---------- */
+        .page-footer {
+            text-align: center;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10px;
+            color: #4B5563;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-top: 1px solid #2A2C30;
+            padding-top: 14px;
+            margin-top: 40px;
         }
     </style>
 </head>
 <body>
     <div class="page-container">
 
-        <!-- PÁGINA 1: PORTADA -->
-        <div class="card-page">
-            <div class="header-meta">
-                <span>Astrea Core Engine v0.3.5</span>
-                <span>Documento Confidencial</span>
+        <!-- ============================================================
+             PÁGINA 1 — PORTADA PERSONAL
+             (sin lenguaje técnico / de software)
+             ============================================================ -->
+        <div class="card-page cover-page">
+            <div></div>
+
+            <div>
+                <div class="cover-eyebrow">Una lectura personal</div>
+                <h1 class="cover-name">{{ nombre_usuario }}</h1>
+                <div class="cover-subtitle">Un mapa del cielo, en el instante en que llegaste al mundo</div>
+                <div class="divider-center"></div>
             </div>
 
-            <div class="title-block">
-                <div class="gold-tag">Análisis Geocéntrico</div>
-                <h1>Informe de Posiciones <br><span class="italic-text">& Configuración Astral</span></h1>
-                <div class="divider"></div>
-            </div>
-
-            <div class="footer-grid">
-                <div>
-                    <div style="color: #6B7280; font-size: 11px; text-transform: uppercase;">Consultante</div>
-                    <div style="font-size: 18px; color: #FFF; margin: 4px 0;">{{ nombre_usuario }}</div>
-                    <div style="font-size: 12px; color: #9CA3AF;">Coordenadas: {{ latitud }}, {{ longitud }}</div>
-                </div>
-                <div class="footer-meta-right">
-                    <div style="color: #6B7280; font-size: 11px; text-transform: uppercase;">Registro Temporal</div>
-                    <div style="font-size: 18px; color: #FFF; margin: 4px 0;">{{ fecha_local }} | {{ hora_local }}</div>
-                    <div class="gold-text-mono">{{ zona_horaria_detectada }}</div>
-                </div>
+            <div class="cover-meta">
+                <div>{{ fecha_local }} · {{ hora_local }}</div>
+                <div class="gold-text-mono" style="margin-top: 6px;">{{ zona_horaria_detectada }}</div>
             </div>
         </div>
 
-        <!-- PÁGINA 2: DISTRIBUCIÓN MATEMÁTICA -->
+        <!-- ============================================================
+             PÁGINA 2 — BIENVENIDA
+             Qué es una carta natal, cómo leer el reporte, encuadre de
+             autoconocimiento.
+             ============================================================ -->
         <div class="card-page">
             <div>
-                <div class="section-title">
-                    <span class="num-gold">I.</span> Distribución Planetaria
-                </div>
-                <p class="desc">
-                    Cálculo de longitudes eclípticas absolutas y su segmentación correspondiente en el Zodíaco Tropical de 360 grados, auditado bajo la efemérides de precisión del JPL de la NASA.
+                <div class="section-kicker">Antes de empezar</div>
+                <h2 class="section-title">Bienvenida a tu lectura</h2>
+                <div class="divider"></div>
+                <p class="desc" style="margin-top: 28px;">
+                    Este documento es un espejo, no una predicción.
                 </p>
+
+                <div class="welcome-block">
+                    <h3>¿Qué es una carta natal?</h3>
+                    <p>
+                        Es una fotografía del cielo tomada en el momento exacto de tu nacimiento,
+                        vista desde el lugar donde llegaste al mundo. Cada planeta ocupaba una
+                        posición precisa; cada una de esas posiciones cuenta algo distinto sobre
+                        cómo te mueves, sientes, decides y te vinculas.
+                    </p>
+                </div>
+
+                <div class="welcome-block">
+                    <h3>¿Cómo leer este reporte?</h3>
+                    <p>
+                        Empieza por tu carta de un vistazo, donde encontrarás las posiciones
+                        exactas de cada planeta. Luego, las páginas siguientes traducen esos
+                        datos en lenguaje humano: quién eres cuando actúas desde tu Sol, qué
+                        necesitas cuando escuchas a tu Luna, cómo te presentas al mundo a través
+                        de tu Ascendente, y así sucesivamente.
+                    </p>
+                </div>
+
+                <div class="welcome-block">
+                    <h3>Una herramienta de autoconocimiento</h3>
+                    <p>
+                        Nada de lo que sigue busca decirte quién eres de forma definitiva ni
+                        anticipar lo que te va a pasar. Es un lenguaje simbólico para pensarte
+                        con más profundidad — una invitación a la reflexión, no un veredicto.
+                    </p>
+                </div>
+            </div>
+
+            <div class="page-footer">Tu Lectura Astral</div>
+        </div>
+
+        <!-- ============================================================
+             PÁGINA 3 — TU CARTA DE UN VISTAZO
+             (antes "Distribución Planetaria")
+             Resumen visual + tabla existente sin alterar datos.
+             ============================================================ -->
+        <div class="card-page">
+            <div>
+                <div class="section-kicker">Tu carta, en conjunto</div>
+                <h2 class="section-title">Tu Carta de un Vistazo</h2>
+                <div class="divider"></div>
+                <p class="desc" style="margin-top: 28px;">
+                    Antes de entrar en el detalle de cada planeta, aquí tienes el panorama
+                    completo: dónde estaba cada cuerpo celeste en el momento de tu nacimiento.
+                </p>
+
+                <!--
+                    TODO: Los siguientes tres valores (elemento dominante, modalidad
+                    dominante, planeta dominante) requieren un cálculo agregado que
+                    todavía no existe en astro_service.py / endpoints.py.
+                    Se dejan placeholders visualmente diferenciados hasta que el
+                    backend exponga estas variables. No inventar lógica aquí.
+                -->
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-label">Elemento Dominante</div>
+                        {% if elemento_dominante is defined %}
+                        <div class="summary-value">{{ elemento_dominante }}</div>
+                        {% else %}
+                        <div class="summary-placeholder">— Próximamente —</div>
+                        {% endif %}
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Modalidad Dominante</div>
+                        {% if modalidad_dominante is defined %}
+                        <div class="summary-value">{{ modalidad_dominante }}</div>
+                        {% else %}
+                        <div class="summary-placeholder">— Próximamente —</div>
+                        {% endif %}
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Planeta Dominante</div>
+                        {% if planeta_dominante is defined %}
+                        <div class="summary-value">{{ planeta_dominante }}</div>
+                        {% else %}
+                        <div class="summary-placeholder">— Próximamente —</div>
+                        {% endif %}
+                    </div>
+                </div>
 
                 <table>
                     <thead>
                         <tr>
                             <th>Cuerpo Celeste</th>
-                            <th>Signo Zodiacal</th>
-                            <th class="text-right">Posición Exacta</th>
+                            <th>Signo</th>
+                            <th class="text-right">Posición</th>
                             <th class="text-center">Estado</th>
                         </tr>
                     </thead>
@@ -220,7 +479,7 @@
                                 {% if p.retrogrado %}
                                 <span class="rx-tag">Rx</span>
                                 {% else %}
-                                <span style="color: #4B5563; font-family: monospace; font-size: 11px; text-transform: uppercase;">Dir</span>
+                                <span style="color: #4B5563; font-family: monospace; font-size: 11px; text-transform: uppercase;">Directo</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -228,79 +487,147 @@
                     </tbody>
                 </table>
             </div>
-            <div class="text-center" style="font-size: 10px; color: #4B5563; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid #2A2C30; padding-top: 10px;">
-                Astrea Analytics — Página 2
-            </div>
+            <div class="page-footer">Tu Lectura Astral</div>
         </div>
 
-        <!-- PÁGINA 3: CAPÍTULO I -->
-        <div class="card-page" style="height: auto; min-height: 270mm;">
+        <!-- ============================================================
+             PÁGINA 4 — TU SOL / TU LUNA / TU ASCENDENTE
+             (antes "Vector de Liderazgo e Identidad")
+             ============================================================ -->
+        <div class="card-page" style="page-break-after: always;">
             <div>
-                <div class="section-title">
-                    <span class="num-gold">II.</span> Vector de Liderazgo e Identidad
-                </div>
-                
-                <div class="quote-box">
+                <div class="section-kicker">Quién eres en esencia</div>
+                <h2 class="section-title">Tu Identidad</h2>
+                <div class="divider"></div>
+
+                <div class="quote-box" style="margin-top: 32px;">
                     {{ interpretacion_premium.introduccion_sintesis }}
                 </div>
-                
-                <div class="block-chapter">
-                    <h3>El Propósito Consciente (Sol)</h3>
+
+                <div class="block-chapter" style="margin-top: 46px;">
+                    <div class="chapter-eyebrow">El propósito que te mueve</div>
+                    <h3>Tu Sol</h3>
+                    <div class="chapter-divider"></div>
                     <p>{{ interpretacion_premium.capitulo_1_identidad.sol }}</p>
                 </div>
-                
-                <div class="block-chapter" style="margin-top: 20px;">
-                    <h3>La Matriz Emocional (Luna)</h3>
+
+                <div class="block-chapter">
+                    <div class="chapter-eyebrow">Lo que necesitas para sentirte en casa</div>
+                    <h3>Tu Luna</h3>
+                    <div class="chapter-divider"></div>
                     <p>{{ interpretacion_premium.capitulo_1_identidad.luna }}</p>
                 </div>
 
-                <div class="block-chapter" style="margin-top: 20px;">
-                    <h3>El Lente Operativo (Ascendente)</h3>
+                <div class="block-chapter" style="margin-bottom: 0;">
+                    <div class="chapter-eyebrow">Cómo te encuentra el mundo</div>
+                    <h3>Tu Ascendente</h3>
+                    <div class="chapter-divider"></div>
                     <p>{{ interpretacion_premium.capitulo_1_identidad.ascendente }}</p>
                 </div>
             </div>
-            <div class="text-center" style="font-size: 10px; color: #4B5563; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid #2A2C30; padding-top: 10px; margin-top: 30px;">
-                Astrea Analytics — Página 3
-            </div>
+            <div class="page-footer">Tu Lectura Astral</div>
         </div>
 
-        <!-- PÁGINA 4: CAPÍTULO II & III -->
-        <div class="card-page" style="height: auto; min-height: 270mm; page-break-after: avoid;">
+        <!-- ============================================================
+             PÁGINA 5 — MERCURIO / VENUS / MARTE + APALANCAMIENTO
+             (antes "Matriz Operativa" + "Puntos de Apalancamiento")
+             ============================================================ -->
+        <div class="card-page" style="page-break-after: always;">
             <div>
-                <div class="section-title">
-                    <span class="num-gold">III.</span> Matriz Operativa y Dinámica Geométrica
-                </div>
+                <div class="section-kicker">Cómo piensas, amas y actúas</div>
+                <h2 class="section-title">Tu Forma de Moverte por el Mundo</h2>
+                <div class="divider"></div>
 
-                <div class="block-chapter">
-                    <h3>Estrategia Mental y Comunicación (Mercurio)</h3>
+                <div class="block-chapter" style="margin-top: 40px;">
+                    <div class="chapter-eyebrow">Tu manera de pensar y comunicarte</div>
+                    <h3>Mercurio</h3>
+                    <div class="chapter-divider"></div>
                     <p>{{ interpretacion_premium.capitulo_2_operacion.mercurio }}</p>
                 </div>
 
-                <div class="block-chapter" style="margin-top: 20px;">
-                    <h3>Código de Alianzas y Alquimia (Venus)</h3>
+                <div class="block-chapter">
+                    <div class="chapter-eyebrow">Cómo amas y qué valoras</div>
+                    <h3>Venus</h3>
+                    <div class="chapter-divider"></div>
                     <p>{{ interpretacion_premium.capitulo_2_operacion.venus }}</p>
                 </div>
 
-                <div class="block-chapter" style="margin-top: 20px;">
-                    <h3>Vector de Ejecución y Empuje (Marte)</h3>
+                <div class="block-chapter">
+                    <div class="chapter-eyebrow">Cómo actúas y defiendes lo tuyo</div>
+                    <h3>Marte</h3>
+                    <div class="chapter-divider"></div>
                     <p>{{ interpretacion_premium.capitulo_2_operacion.marte }}</p>
                 </div>
 
-                <div class="section-title" style="margin-top: 40px;">
-                    <span class="num-gold">IV.</span> Puntos de Apalancamiento y Dinámica Geométrica
-                </div>
+                <div class="section-kicker" style="margin-top: 50px;">Las conexiones clave</div>
+                <h2 class="section-title" style="font-size: 24px;">Tus Puntos de Tensión y Talento</h2>
+                <div class="divider"></div>
 
-                <div class="block-chapter">
+                <div class="block-chapter" style="margin-top: 28px; margin-bottom: 0;">
                     <p>{{ interpretacion_premium.capitulo_3_apalancamiento.analisis_aspectos }}</p>
                 </div>
 
-                <div class="quote-box" style="margin-top: 30px;">
+                <div class="quote-box small">
                     "{{ interpretacion_premium.cita_cierre }}"
                 </div>
             </div>
-            <div class="text-center" style="font-size: 10px; color: #4B5563; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid #2A2C30; padding-top: 10px; margin-top: 30px;">
-                Astrea Analytics — Página 4
+            <div class="page-footer">Tu Lectura Astral</div>
+        </div>
+
+        <!-- ============================================================
+             PÁGINA 6 — ENERGÍA DEL MOMENTO (nueva, futura)
+             Estructura preparada para tránsitos. Sin lógica implementada.
+             Todo lo de abajo es placeholder / TODO explícito.
+             ============================================================ -->
+        <div class="card-page" style="page-break-after: avoid;">
+            <div>
+                <div class="section-kicker">Lo que viene</div>
+                <h2 class="section-title">Energía del Momento</h2>
+                <div class="divider"></div>
+                <p class="desc" style="margin-top: 28px;">
+                    Esta sección está reservada para tránsitos planetarios actuales — cómo
+                    el cielo de hoy conversa con tu carta natal. Todavía no está activa.
+                </p>
+
+                <!--
+                    TODO (backend): calcular tránsitos vigentes (planetas en tiempo real
+                    vs. posiciones natales) en un nuevo servicio, p.ej.
+                    app/services/transitos_service.py, y pasar el resultado al contexto
+                    de Jinja como `transitos` (lista) y `resumen_energia_actual` (string),
+                    sin modificar las variables existentes.
+                -->
+                <div class="todo-block">
+                    <div class="todo-label">TODO — Resumen de energía actual</div>
+                    <p>
+                        {% if resumen_energia_actual is defined %}
+                        {{ resumen_energia_actual }}
+                        {% else %}
+                        Aquí irá una síntesis del clima astrológico vigente y cómo activa
+                        puntos específicos de tu carta natal.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!--
+                    TODO (backend): estructura esperada por elemento de `transitos`:
+                    { "planeta_transito": str, "aspecto": str, "planeta_natal": str,
+                      "interpretacion": str }
+                -->
+                <div class="todo-block">
+                    <div class="todo-label">TODO — Tránsitos activos</div>
+                    <p>
+                        {% if transitos is defined %}
+                        {% for t in transitos %}
+                        {{ t.planeta_transito }} en {{ t.aspecto }} con tu {{ t.planeta_natal }} natal: {{ t.interpretacion }}<br>
+                        {% endfor %}
+                        {% else %}
+                        Cuando esta función esté activa, aquí verás qué planetas están en
+                        movimiento hoy y qué zonas de tu carta natal están tocando.
+                        {% endif %}
+                    </p>
+                </div>
             </div>
+            <div class="page-footer">Tu Lectura Astral</div>
         </div>
 
     </div>
